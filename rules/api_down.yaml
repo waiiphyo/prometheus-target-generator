@@ -1,0 +1,21 @@
+groups:
+- name: api_down_alert
+  rules:
+  - alert: Wildcard_API_production.truemoney.com.mm_Down
+    expr: probe_http_status_code{instance=~".+\\.waiphyo\\.site.+"} != 200
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Production API Down"
+      description: "API Link : {{$labels.instance}} down"
+
+  - alert: Wildcard_API_public.ascendmoney.io_internal_Down
+    expr: probe_http_status_code{instance=~".+\\.waiphyo\\.site.+"} != 200
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+       summary: "Production API Down"
+       description: "API Link : {{$labels.instance}} down"
+

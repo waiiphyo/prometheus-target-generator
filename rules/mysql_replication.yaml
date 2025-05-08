@@ -1,0 +1,36 @@
+groups:
+- name: MySQL-Replication
+  rules:
+  - alert: MySQLReplicationNotRunning
+    expr: mysql_slave_status_master_server_id > 0 and ON (instance) mysql_slave_status_slave_sql_running == 0
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "MySQL Slave SQL thread not running (instance {{ $labels.instance }} {{ $labels.instance_hostname }})"
+      description: "MySQL Slave SQL thread not running on {{ $labels.instance }}\n  VALUE = {{ $value }}\n  Instance: {{ $labels.instance }}\n  Hostname: {{ $labels.instance_hostname }}\n  Instance_Group: {{ $labels.instance_group }}\n Master_Host: {{ $labels.master_host }}"
+      timestamp: >
+        time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+   
+  - alert: MysqlSlaveReplicationLag
+    expr: (mysql_slave_status_seconds_behind_master - mysql_slave_status_sql_delay) > 50
+    for: 5s
+    labels:
+      severity: critical
+    annotations:
+      summary: "MySQL Slave replication lag on instance {{ $labels.instance }} {{ $labels.instance_hostname }}"
+      description: "MysqL replication lag on {{ $labels.instance }}\n {{ $value }} seconds"
+      timestamp: >
+        time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+
+  - alert: MySQL Slave IO thread not running
+    expr: mysql_slave_status_master_server_id > 0 and ON (instance) mysql_slave_status_slave_io_running == 0
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "MySQL Slave IO thread not running on {{ $labels.instance }} {{ $labels.instance_hostname }}"
+      description: "MySQL Slave IO thread not running on {{ $labels.instance }} {{ $labels.instance_hostname }}"
+      timestamp: >
+        time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+

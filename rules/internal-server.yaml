@@ -1,0 +1,14 @@
+groups:
+
+- name: Internal-Server-Error
+  rules:
+  - alert: InternalServerError
+    expr: sum (http_server_requests_seconds_count{app_name="test-app",uri!~"/health|/info", status="500"}) by (status, uri) > 5 
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Internal Server error more than 5 times withins 2 minutes"
+      description: "Too many HTTP requests with status 500"
+      timestamp: >
+        time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}

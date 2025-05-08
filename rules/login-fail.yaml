@@ -1,0 +1,15 @@
+groups:
+
+- name: LoginFail-by-client
+  rules:
+  - alert: LoginFail
+    expr: 100 * (sum (rate(http_server_requests_seconds_count{app_name="test-app",uri!~"/health|/info",uri=~"/login", status="400"}[10m])) by (status, uri)) > 10
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Login Fail more than 10 percentage withins 10 minutes"
+      description: "Too many HTTP requests with status 400"
+      timestamp: >
+        time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+

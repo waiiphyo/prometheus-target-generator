@@ -1,0 +1,19 @@
+groups:
+  - name: instance_record
+    rules:
+    - record: instance_cpu_usage:1m
+      expr: 100 - (avg(irate(node_cpu{mode="idle"}[1m]))by(instance_hostname)*100)
+    - record: instance_group_cpu_usage:1m
+      expr: 100 - (avg(irate(node_cpu{mode="idle"}[1m]))by(instance_hostname,instance_group)*100)
+    - record: instance_mem_available
+      expr: node_memory_MemAvailable
+    - record: instance_mem_total
+      expr: node_memory_MemTotal
+    - record: instance_mem_usage:percent
+      expr: ((instance_mem_total - instance_mem_available)) / (instance_mem_total) * 100
+
+    - record: instance_fs_usage:percent
+      expr: 100 - (  ((node_filesystem_avail{})  / (node_filesystem_size{} )) *100)
+
+    - record: instance_fs_size
+      expr: node_filesystem_size

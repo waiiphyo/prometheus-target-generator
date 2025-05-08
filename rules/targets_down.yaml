@@ -1,0 +1,47 @@
+groups:
+- name: agent_down_alert
+  rules:
+  - alert: federate_app_openshift_Agent_Down
+    expr: up{job="federate_app_openshift"} == 0
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "federate_app_openshift agent down"
+      description: "Agent Down \nInstance: {{$labels.instance}} \nHostname: {{$labels.instance_hostname}}"
+      timestamp: >
+        time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+
+  - alert: federate_sys_openshift_Agent_Down
+    expr: up{job="federate_sys_openshift"} == 0
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "federate_sys_openshift agent down"
+      description: "Agent Down \nInstance: {{$labels.instance}} \nHostname: {{$labels.instance_hostname}}"
+      timestamp: >
+        time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+
+  - alert: application_metrics_non_tls_agent_down
+    expr: up{job="application-metrics-non-tls"} and (up{app_name!~"zipkin-server|myanmar-operation-portal|mockup-service"} == 0)
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      summary: "application-metrics-non-tls agent down"
+      description: "Agent Down \nApp_Name : {{$labels.app_name}} \nApp_Version : {{$labels.app_version}} \nPod_IP : {{$labels.instance}} \nInstance_IP : {{$labels.host_instance_ip}} \nNamespace : {{$labels.namespace}}"
+      timestamp: >
+        time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+
+  - alert: application_metrics_tls_agent_down
+    expr: up{job="application-metrics-tls"} and (up{app_name!~"zipkin-server|ami-admin-portal|ami-spi-gateway|housekeeping|mm-operation-portal|mm-agent-portal|mm-crossborder"} == 0)
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      summary: "application-metrics-tls agent down"
+      description: "Agent Down \nApp_Name : {{$labels.app_name}} \nApp_Version : {{$labels.app_version}} \nPod_IP : {{$labels.instance}} \nInstance_IP : {{$labels.host_instance_ip}} \nNamespace : {{$labels.namespace}}"
+      timestamp: >
+        time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+

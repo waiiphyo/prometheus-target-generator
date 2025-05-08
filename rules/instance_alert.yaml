@@ -1,0 +1,91 @@
+groups:
+- name: instance_alert_v2
+  rules:
+  - alert: agent_down
+    expr: up == 0
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "agent down"
+      description: "Server Down\nInstance: {{$labels.instance}} \nHostname: {{$labels.instance_hostname}}"
+      timestamp: >
+        time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+
+  - alert: MemoryUsage Critical
+    expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 < 10
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Memory Usage Critical (instance {{ $labels.instance_hostname }})"
+      description: "Node memory is filling up (< 10% left)\n  VALUE = {{ $value }}\n  Instance: {{ $labels.instance }}\n  Hostname: {{ $labels.instance_hostname }}\n  Instance_Group: {{ $labels.instance_group }}\n  Job: {{ $labels.job }}"
+      timestamp: >
+        time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+
+  - alert: MemoryUsage Warning
+    expr: (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 > 10) and (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 < 20)
+    for: 30s
+    labels:
+      severity: warning
+    annotations:
+      summary: "Memory usage warning (instance {{ $labels.instance_hostname }})"
+      description: "Node memory is filling up (< 20% left)\n  VALUE = {{ $value }}\n  Instance: {{ $labels.instance }}\n  Hostname: {{ $labels.instance_hostname }}\n  Instance_Group: {{ $labels.instance_group }}\n  Job: {{ $labels.job }}" 
+      timestamp: >
+        time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+ 
+  - alert: DiskSpace_Critical
+    expr: (node_filesystem_avail_bytes{mountpoint!="/elasticsearch", device!~"rootfs"} * 100) / node_filesystem_size_bytes{mountpoint!="/elasticsearch", device!~"rootfs"} < 10
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Disk space Usage Critical (instance {{ $labels.instance_hostname }})"
+      description: "Disk is almost full (< 10% left)\n  VALUE = {{ $value }}\n  Instance: {{ $labels.instance }}\n  Hostname: {{ $labels.instance_hostname }}\n  Instance_Group: {{ $labels.instance_group }}\n  Job: {{ $labels.job }}\n  Device: {{ $labels.device }}\n  FileSystemType: {{ $labels.fstype }}\n  MountPoint: {{ $labels.mountpoint }}" 
+      timestamp: >
+        time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+
+  - alert: Elastic_DiskSpace_Critical
+    expr: (node_filesystem_avail_bytes{mountpoint="/elasticsearch"} * 100 ) / node_filesystem_size_bytes{mountpoint="/elasticsearch"} < 5
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Disk space cirtical (instance {{ $labels.instance_hostname }})"
+      description: "Disk is almost full (< 10% left)\n  VALUE = {{ $value }}\n  Instance: {{ $labels.instance }}\n  Hostname: {{ $labels.instance_hostname }}\n  Instance_Group: {{ $labels.instance_group }}\n  Job: {{ $labels.job }}\n  Device: {{ $labels.device }}\n  FileSystemType: {{ $labels.fstype }}\n  MountPoint: {{ $labels.mountpoint }}" 
+      timestamp: >
+        time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+
+  - alert: DiskSpace_Warning
+    expr: ((node_filesystem_avail_bytes{mountpoint!="/elasticsearch", device!~"rootfs"} * 100) / node_filesystem_size_bytes{mountpoint!="/elasticsearch", device!~"rootfs"} > 10) and ((node_filesystem_avail_bytes{mountpoint!="/elasticsearch", device!~"rootfs"} * 100) / node_filesystem_size_bytes{mountpoint!="/elasticsearch", device!~"rootfs"} < 15)
+    for: 30s
+    labels:
+      severity: warning
+    annotations:
+      summary: "Host disk will run out of space (instance {{ $labels.instance_hostname }})"
+      description: "Filesystem is predicted to run out of space\n  VALUE = {{ $value }}\n  Instance: {{ $labels.instance }}\n  Hostname: {{ $labels.instance_hostname }}\n  Instance_Group: {{ $labels.instance_group }}\n  Job: {{ $labels.job }}\n  Device: {{ $labels.device }}\n  FileSystemType: {{ $labels.fstype }}\n  MountPoint: {{ $labels.mountpoint }}"
+      timestamp: >
+        time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+
+  - alert: CpuLoad_Warning
+    expr: 100 - (avg by(instance,instance_hostname) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 70
+    for: 30s
+    labels:
+      severity: warning
+    annotations:
+      summary: "CPU Load Warning (instance {{ $labels.instance_hostname }})"
+      description: "CPU load is > 80%\n  VALUE = {{ $value }}\n  Instance: {{ $labels.instance_hostname }}\n  Instance IP: {{ $labels.instance }}"
+      timestamp: >
+        time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+
+  - alert: CpuLoad_Critical
+    expr: 100 - (avg by(instance,instance_hostname) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "CPU Load Critical (instance {{ $labels.instance_hostname }})"
+      description: "CPU load is > 90%\n  VALUE = {{ $value }}\n  Instance: {{ $labels.instance_hostname }}\n  Instance IP: {{ $labels.instance }}"
+      timestamp: >
+        time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+
